@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
 
     int maxBW = 0;                          // Maximum bandwidth
     int maxRev = 0;                         // Maximum revenue
+    int maxRevWithoutSublease = 0;          // Maximum revenue without sublease
 
     ifstream inputFile(argv[1]);            // Open the file for reading
 
@@ -106,6 +107,7 @@ int main(int argc, char* argv[]) {
     int currentRev[bandwCap];                       // The revenue for calculating
     int currentBW[bandwCap];                        // The BW for calculating
     int theIndex = 0;
+    int theIndex2 = 0;
     bool subleaseBool = false;                      // The bool of sublease
 
     // Initializing the currentRev and currentBW array.
@@ -143,6 +145,7 @@ int main(int argc, char* argv[]) {
 
             if (i == 0) {
                 maxRev = currentRev[i];
+                maxRevWithoutSublease = currentRev[i];
                 // Initially store the very first current revenue into the maximum revenue.
             }
             else {
@@ -150,20 +153,25 @@ int main(int argc, char* argv[]) {
                     maxRev = currentRev[i];
                     theIndex = i;
                 }
+
+                if (currentRev[i] > maxRevWithoutSublease) {
+                    maxRevWithoutSublease = currentRev[i];
+                    theIndex2 = i;
+                }
             }
 
             maxBW = tmp;
         }
 
         cout << endl << "The maximum revenue: " << maxRev << endl;
-        cout << "theIndex: " << theIndex << endl;
+        cout << "theIndex: " << theIndex << endl << endl;
 
         for (int i = 0; i < numberOfCalc; i++) {
             for (int j = 0; j < numberOfCalc - 1; j++) {
                 cout << indexes[i][j] << " ";
             }
 
-            cout << endl;
+            cout << endl << endl;
         }
 
         if (currentBW[theIndex] <= bandwCap) {
@@ -174,7 +182,7 @@ int main(int argc, char* argv[]) {
             }
             else {
                 cout << endl << "maxBW: " << maxBW << "\nbandwCap: " << bandwCap << endl;
-                dummyFile << "1" << endl << theIndex << ","
+                dummyFile << "1" << endl << get<0>(clients[theIndex]) << ","
                 << maxBW - bandwCap << endl;
             }
 
@@ -206,21 +214,20 @@ int main(int argc, char* argv[]) {
     }
 
     // Encode the "dummy.txt" into an UTF-8 format "output.txt" file.
-    ifstream dummyFile("dummy.txt", ios::in | ios::binary);
-    ofstream outputFile("output.txt", ios::out | ios::binary);
+    ifstream inFile("dummy.txt", std::ios::in | std::ios::binary);
+    ofstream outputFile("output.txt", std::ios::out | std::ios::binary);
 
     string line;
 
-    while(getline(dummyFile, line)) {
+    while(getline(inFile, line)) {
         outputFile << line << endl;
     }
 
-    dummyFile.close();
+    inFile.close();
     outputFile.close();
-
     return 0;
 }
 
-int calcSublease(int rev, int remainedBW) {
+int calcSublease(int rev, int remainedBW) {         // For calculating sublease deduction
     return (double)(1.1 * (remainedBW / bandwCap) * rev);
 }

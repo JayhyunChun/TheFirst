@@ -10,6 +10,10 @@ using namespace std;
 
 int bandwCap;                               // Bandwidth cap
 
+double calcSublease(double rev, double remainedBW, double BW) {         // For calculating sublease deduction
+    return 1.1 * (remainedBW / BW) * rev;
+}
+
 int main(int argc, char* argv[]) {
     int numberOfLines;                      // The number of lines
     vector<tuple<int, int, int>> clients;
@@ -22,7 +26,6 @@ int main(int argc, char* argv[]) {
 
     int maxBW = 0;                          // Maximum bandwidth
     int maxRev = 0;                         // Maximum revenue
-    int maxRevWithoutSublease = 0;          // Maximum revenue without sublease
 
     ifstream inputFile(argv[1]);            // Open the file for reading
 
@@ -106,25 +109,29 @@ int main(int argc, char* argv[]) {
 
     int currentRev[bandwCap];                       // The revenue for calculating
     int currentBW[bandwCap];                        // The BW for calculating
+    int maxRevWithoutSublease[bandwCap];                    // Maximum revenue without sublease
     int theIndex = 0;
     int theIndex2 = 0;
+    /*
+    Determine "the" index.
+    The index indicates whether the calculation of sublease should be taken or not.
+    */
+
     bool subleaseBool = false;                      // The bool of sublease
 
-    // Initializing the currentRev and currentBW array.
+    // Initializing the currentRev, maxRevWithoutSublease and currentBW array.
     for (int i = 0; i < bandwCap; i++) {
         currentRev[i] = 0;
         currentBW[i] = 0;
+        maxRevWithoutSublease[i] = -1;
     }
 
     int numberOfCalc = numberOfLines;               // Later determines how many calculations are needed.
 
     for (int h = 0; h < numberOfLines - 1; h++) {
         int indexes[numberOfCalc][numberOfCalc - 1];
-        /*
-        Determine "the" index.
-        The index indicates whether the calculation of sublease should be taken or not.
-        */
-
+        int indexes2[numberOfCalc][numberOfCalc - 1];
+        
         for (int i = 0; i < numberOfCalc; i++) {
             int tmp = maxBW;
             int index2 = 0;
@@ -143,9 +150,12 @@ int main(int argc, char* argv[]) {
 
             cout << "currentRev: " << currentRev[i] << endl;
 
+            if (maxBW <= bandwCap && maxRevWithoutSublease[h] == -1) {
+                maxRevWithoutSublease[h] = currentRev[i];
+            }
+
             if (i == 0) {
                 maxRev = currentRev[i];
-                maxRevWithoutSublease = currentRev[i];
                 // Initially store the very first current revenue into the maximum revenue.
             }
             else {
@@ -154,8 +164,15 @@ int main(int argc, char* argv[]) {
                     theIndex = i;
                 }
 
-                if (currentRev[i] > maxRevWithoutSublease) {
-                    maxRevWithoutSublease = currentRev[i];
+                if (maxBW <= bandwCap && maxRevWithoutSublease[h] != -1 && currentRev[h] > maxRevWithoutSublease[i]) {
+                    maxRevWithoutSublease[h] = currentRev[i];
+                    
+                    for (int j = 0; j < numberOfCalc; j++) {
+                        if (i != j) {
+                            indexes2[h][j] = get<0>(clients[j]);
+                        }
+                    }
+
                     theIndex2 = i;
                 }
             }
@@ -164,23 +181,48 @@ int main(int argc, char* argv[]) {
         }
 
         cout << endl << "The maximum revenue: " << maxRev << endl;
+        cout << "maxRevWithoutSubleas: " << maxRevWithoutSublease[h] << endl;
         cout << "theIndex: " << theIndex << endl << endl;
 
         for (int i = 0; i < numberOfCalc; i++) {
-            for (int j = 0; j < numberOfCalc - 1; j++) {
-                cout << indexes[i][j] << " ";
+            for (int j = 0; j < numberOfCalc; j++) {
+                cout << indexes[h - 1][j] << " ";
             }
 
             cout << endl << endl;
         }
 
+        if (h > 0) {
+            cout << "maxRevWithoutSublease[h - 1]: " << maxRevWithoutSublease[h - 1] << endl; 
+            cout << "maxRev + calcSublease: " << maxRev + calcSublease(get<1>(clients[theIndex]), maxBW - bandwCap, bandwCap) << endl;
+            if (maxRevWithoutSublease[h - 1] > maxRev + calcSublease(get<1>(clients[theIndex]), maxBW - bandwCap, bandwCap)) {
+                cout << "abc" << endl;
+                ofstream dummyFile("dummy.txt");
+    
+                dummyFile << "0" << endl << numberOfCalc << endl;
+
+                for (int i = 0; i < numberOfCalc; i++) {
+                    dummyFile << indexes2[theIndex][i] << endl;
+                }
+
+                dummyFile.close();
+                break;
+            }
+            else {
+                subleaseBool = true;
+            }
+        }
+
         if (currentBW[theIndex] <= bandwCap) {
+            cout << "def" << endl;
             ofstream dummyFile("dummy.txt");
             
             if (subleaseBool == false) {
+                cout << "ghi" << endl;
                 dummyFile << "0" << endl << numberOfCalc - 1 << endl;
             }
             else {
+                cout << "jkl" << endl;
                 cout << endl << "maxBW: " << maxBW << "\nbandwCap: " << bandwCap << endl;
                 dummyFile << "1" << endl << get<0>(clients[theIndex]) << ","
                 << maxBW - bandwCap << endl;
@@ -195,7 +237,6 @@ int main(int argc, char* argv[]) {
         }
         else {
             numberOfCalc--;
-            subleaseBool = true;
             maxBW -= get<2>(clients[theIndex]);
             clients.erase(clients.begin() + theIndex);
 
@@ -226,8 +267,4 @@ int main(int argc, char* argv[]) {
     inFile.close();
     outputFile.close();
     return 0;
-}
-
-int calcSublease(int rev, int remainedBW) {         // For calculating sublease deduction
-    return (double)(1.1 * (remainedBW / bandwCap) * rev);
 }

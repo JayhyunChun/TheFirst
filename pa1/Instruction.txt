@@ -1,0 +1,38 @@
+This instruction was written by Jay Chun.
+
+1. You can use one of the followings:
+
+	1) $ g++ -o pa1 pa1.cpp
+	2) $ gcc pa1.cpp -lstdc++
+
+Type one of the above in the terminal.
+
+2. When the output file is produced, type that in the terminal with the following format:
+
+	$ ./a.out test0.csv
+
+There are 5 test .csv files; from "test0.csv" to "test4.csv".
+
+3. There will be some logs in the terminal to make sure my code works properely. The logs are like followings:
+
+	1) The bandwidth cap: 240	<- The first line of the input
+	2) Number of lines: 5		<- The second line of the input
+	3) (0, 100, 100)		<- The third and beyond lines of the input.
+	   (1, 30, 20)			   The numbers inside the parenthesis are in following format:
+	   (2, 500, 30)			   (index, expected revenue, expected bandwidth)
+	   (3, 300, 40)
+	   (4, 20, 120)
+	4) Maximum BW: 310		<- The sum of the every clients' bandwidth. This is based on my approach to solve this PA 1:
+					   First, sum up the bandwidth, and then, subtracts bandwidth of each client until reach the maximum revenue.
+
+	5) maxBW - BW of client0: 210	currentRev: 850	<- Subtraction of each client's bandwidth and the total revenue.
+	   (...)
+
+	6) max rev (over BW): 930	<- Maximum revenue where the bandwidth is above the capable bandwidth.
+	7) max rev (uncer BW): 930	<- Maximum revenue where the bandwidth is below the capable bandwidth.
+	8) max rev with deduction (if any)	<- Maximum revenue after the subtraction of the sublease.
+	9) max rev without deduction (if any)	<- Maximum revenue where the bandwidth is below the capable bandwidth (same as the "max rev (under BW)")
+
+Please use this guide to figure out the logs inside the terminal.
+
+4. The "output.txt" will be created. You can compare them with the "test*_expected.txt" that I've made by doing "hard calculating the best possible revenue".

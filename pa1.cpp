@@ -24,8 +24,7 @@ int main(int argc, char* argv[]) {
     3rd int: Expected BW
     */   
 
-    int maxBW = 0;                          // Maximum bandwidth
-    int maxRev = 0;                         // Maximum revenue
+    int maxBW = 0;                                  // Maximum bandwidth
 
     ifstream inputFile(argv[1]);            // Open the file for reading
 
@@ -95,6 +94,7 @@ int main(int argc, char* argv[]) {
     }
     // Done retrieving values from text file.
 
+    // Placeholer
     cout << "The bandwidth cap: " << bandwCap << endl << "Number of lines: "
     << numberOfLines << endl;
 
@@ -109,7 +109,8 @@ int main(int argc, char* argv[]) {
 
     int currentRev[bandwCap];                       // The revenue for calculating
     int currentBW[bandwCap];                        // The BW for calculating
-    int maxRevWithoutSublease[bandwCap];                    // Maximum revenue without sublease
+    int maxRev[bandwCap];                                 // Maximum revenue
+    int maxRevWithoutSublease[bandwCap];            // Maximum revenue without sublease
     int theIndex = 0;
     int theIndex2 = 0;
     /*
@@ -123,6 +124,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < bandwCap; i++) {
         currentRev[i] = 0;
         currentBW[i] = 0;
+        maxRev[i] = 0;
         maxRevWithoutSublease[i] = -1;
     }
 
@@ -138,8 +140,8 @@ int main(int argc, char* argv[]) {
 
             maxBW -= get<2>(clients[i]);
             currentBW[i] = maxBW;
-            cout << "maxBW - BW of client" << i << ": " << currentBW[i] << "\t";
-            
+            cout << "maxBW - BW of client" << get<0>(clients[i]) << ": " << currentBW[i] << "\t";
+
             for (int j = 0; j < numberOfCalc; j++) {
                 if (i != j) {
                     currentRev[i] += get<1>(clients[j]);
@@ -155,12 +157,12 @@ int main(int argc, char* argv[]) {
             }
 
             if (i == 0) {
-                maxRev = currentRev[i];
+                maxRev[h] = currentRev[i];
                 // Initially store the very first current revenue into the maximum revenue.
             }
             else {
-                if (currentRev[i] > maxRev) {
-                    maxRev = currentRev[i];
+                if (currentRev[i] > maxRev[h]) {
+                    maxRev[h] = currentRev[i];
                     theIndex = i;
                 }
 
@@ -180,23 +182,13 @@ int main(int argc, char* argv[]) {
             maxBW = tmp;
         }
 
-        cout << endl << "The maximum revenue: " << maxRev << endl;
-        cout << "maxRevWithoutSubleas: " << maxRevWithoutSublease[h] << endl;
-        cout << "theIndex: " << theIndex << endl << endl;
+        cout << "max rev (over BW): " << maxRev[h] << endl;
+        cout << "max rev (under BW): " << maxRevWithoutSublease[h] << endl;
 
-        for (int i = 0; i < numberOfCalc; i++) {
-            for (int j = 0; j < numberOfCalc; j++) {
-                cout << indexes[h - 1][j] << " ";
-            }
-
-            cout << endl << endl;
-        }
-
-        if (h > 0) {
-            cout << "maxRevWithoutSublease[h - 1]: " << maxRevWithoutSublease[h - 1] << endl; 
-            cout << "maxRev + calcSublease: " << maxRev + calcSublease(get<1>(clients[theIndex]), maxBW - bandwCap, bandwCap) << endl;
-            if (maxRevWithoutSublease[h - 1] > maxRev + calcSublease(get<1>(clients[theIndex]), maxBW - bandwCap, bandwCap)) {
-                cout << "abc" << endl;
+        if (h > 0 && maxRevWithoutSublease[h - 1] != -1) {
+            cout << "max rev with deduction: " << maxRev[h - 1] - calcSublease(get<1>(clients[theIndex]), maxBW - bandwCap, bandwCap) << endl;
+            cout << "max rev without deduction: " << maxRevWithoutSublease[h - 1] << endl;
+            if (maxRevWithoutSublease[h - 1] > maxRev[h - 1] - calcSublease(get<1>(clients[theIndex]), maxBW - bandwCap, bandwCap)) {
                 ofstream dummyFile("dummy.txt");
     
                 dummyFile << "0" << endl << numberOfCalc << endl;
@@ -214,16 +206,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (currentBW[theIndex] <= bandwCap) {
-            cout << "def" << endl;
             ofstream dummyFile("dummy.txt");
             
             if (subleaseBool == false) {
-                cout << "ghi" << endl;
                 dummyFile << "0" << endl << numberOfCalc - 1 << endl;
             }
             else {
-                cout << "jkl" << endl;
-                cout << endl << "maxBW: " << maxBW << "\nbandwCap: " << bandwCap << endl;
                 dummyFile << "1" << endl << get<0>(clients[theIndex]) << ","
                 << maxBW - bandwCap << endl;
             }
@@ -243,13 +231,6 @@ int main(int argc, char* argv[]) {
             for (int i = 0; i < bandwCap; i++) {
                 currentRev[i] = 0;
                 currentBW[i] = 0;
-            }
-
-            for (const auto& element : clients) {
-                int index1 = get<0>(element);
-                int index2 = get<1>(element);
-                int index3 = get<2>(element);
-                cout << "(" << index1 << ", " << index2 << ", " << index3 << ")" << endl;
             }
         }
     }

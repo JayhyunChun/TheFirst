@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <string>
 
@@ -35,9 +36,9 @@ int karatsuba(int x, int y) {
     return z_h*power(10, 2*n_s2) + ((z_c - z_h - z_l)*power(10, n_s2)) + z_l;
 }
 
-void karatsuba_verbose(int x, int y, int indent = 0) {
+void karatsuba_verbose(ofstream &out, int x, int y, int indent = 0) {
     if (x < 10 || y < 10) {
-        cout << string(indent, '\t') << "1," << x << ",0," << y << ",0," << x*y << "," << x*y << ",0" << endl;
+        out << string(indent, '\t') << "1," << x << ",0," << y << ",0," << x*y << "," << x*y << ",0" << "\n";
         return;
     }
     
@@ -50,21 +51,33 @@ void karatsuba_verbose(int x, int y, int indent = 0) {
     int y_h = y / power(10, n_s2);
     int y_l = y % power(10, n_s2);
 
-    karatsuba_verbose(x_h, y_h, indent + 1);
-    karatsuba_verbose(x_l, y_l, indent + 1);
-    karatsuba_verbose(x_h + x_l, y_h + y_l, indent + 1);
+    karatsuba_verbose(out, x_h, y_h, indent + 1);
+    karatsuba_verbose(out, x_l, y_l, indent + 1);
+    karatsuba_verbose(out, x_h + x_l, y_h + y_l, indent + 1);
 
-    cout << string(indent, '\t') << n_s2 << "," << x_h << "," << x_l << "," << y_h << "," << y_l << "," << karatsuba(x_h, y_h) << "," << karatsuba(x_h + x_l, y_h + y_l) << "," << karatsuba(x_l, y_l) << endl;
+    out << string(indent, '\t') << n_s2 << "," << x_h << "," << x_l << "," << y_h << "," << y_l << "," << karatsuba(x_h, y_h) << "," << karatsuba(x_h + x_l, y_h + y_l) << "," << karatsuba(x_l, y_l) << "\n";
 }
 
 int main() {
-    cout << "Result: ";
-    karatsuba_verbose(17, 11);
-    cout << endl;
+    ifstream in("input.txt");
+    ofstream out("output.txt");
 
-    cout << "Result: ";
-    karatsuba_verbose(192, 237);
-    cout << endl;
+    if (!in.is_open() || !out.is_open()) {
+        cerr << "Unable to open file" << endl;
+        return 1;
+    }
+
+    int x, y;
+
+    while (in >> x) {
+        in >> y; // Read the second number
+        out << "Result:\n";
+        karatsuba_verbose(out, x, y);
+        out << "\n";
+    }
+
+    in.close();
+    out.close();
 
     return 0;
 }

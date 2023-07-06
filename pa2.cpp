@@ -38,7 +38,7 @@ int karatsuba(int x, int y) {
 
 void karatsuba_verbose(ofstream &out, int x, int y, int indent = 0) {
     if (x < 10 || y < 10) {
-        out << string(indent, '\t') << "1," << x << ",0," << y << ",0," << x*y << "," << x*y << ",0" << "\n";
+        out << string(indent, '\t') << "1," << x << ",0," << y << ",0," << x*y << "," << x*y << ",0" << endl;
         return;
     }
     
@@ -55,7 +55,7 @@ void karatsuba_verbose(ofstream &out, int x, int y, int indent = 0) {
     karatsuba_verbose(out, x_l, y_l, indent + 1);
     karatsuba_verbose(out, x_h + x_l, y_h + y_l, indent + 1);
 
-    out << string(indent, '\t') << n_s2 << "," << x_h << "," << x_l << "," << y_h << "," << y_l << "," << karatsuba(x_h, y_h) << "," << karatsuba(x_h + x_l, y_h + y_l) << "," << karatsuba(x_l, y_l) << "\n";
+    out << string(indent, '\t') << n_s2 << "," << x_h << "," << x_l << "," << y_h << "," << y_l << "," << karatsuba(x_h, y_h) << "," << karatsuba(x_h + x_l, y_h + y_l) << "," << karatsuba(x_l, y_l) << endl;
 }
 
 int main() {
@@ -69,11 +69,10 @@ int main() {
 
     int x, y;
 
-    while (in >> x) {
-        in >> y; // Read the second number
-        out << "Result:\n";
+    while (in >> x >> y) {
+        out << "Result: ";
         karatsuba_verbose(out, x, y);
-        out << "\n";
+        out << endl;
     }
 
     in.close();

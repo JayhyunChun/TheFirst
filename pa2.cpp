@@ -1,70 +1,70 @@
 #include <iostream>
-#include <vector>
+#include <cmath>
+#include <string>
 
-// Helper function to convert an integer to binary representation
-std::vector<int> toBinary(int num, int numBits) {
-    std::vector<int> binary(numBits);
-    for (int i = numBits - 1; i >= 0; i--) {
-        binary[i] = num & 1;
-        num >>= 1;
+using namespace std;
+
+int power(int base, int exp) {
+    if (exp == 0)
+       return 1;
+    else if (exp % 2)
+       return base * power(base, exp - 1);
+    else {
+       int temp = power(base, exp / 2);
+       return temp * temp;
     }
-    return binary;
 }
 
-// Recursive multiplication algorithm
-void recursiveMultiply(int x, int y, int n_s, std::vector<int>& output) {
-    // Base case: either x or y is 0
-    if (x == 0 || y == 0) {
-        output = {0, 0, 0, 0, 0, 0, 0, 0};
+int karatsuba(int x, int y) {
+    if (x < 10 || y < 10)
+        return x*y;
+    
+    int n_s = max(to_string(x).length(), to_string(y).length());
+    int n_s2 = n_s / 2;
+
+    int x_h = x / power(10, n_s2);
+    int x_l = x % power(10, n_s2);
+
+    int y_h = y / power(10, n_s2);
+    int y_l = y % power(10, n_s2);
+
+    int z_h = karatsuba(x_h, y_h);
+    int z_l = karatsuba(x_l, y_l);
+    int z_c = karatsuba(x_h + x_l, y_h + y_l);
+
+    return z_h*power(10, 2*n_s2) + ((z_c - z_h - z_l)*power(10, n_s2)) + z_l;
+}
+
+void karatsuba_verbose(int x, int y, int indent = 0) {
+    if (x < 10 || y < 10) {
+        cout << string(indent, '\t') << "1," << x << ",0," << y << ",0," << x*y << "," << x*y << ",0" << endl;
         return;
     }
+    
+    int n_s = max(to_string(x).length(), to_string(y).length());
+    int n_s2 = n_s / 2;
 
-    // Split x and y into high and low bits
-    int x_h = x >> n_s;
-    int x_l = x & ((1 << n_s) - 1);
-    int y_h = y >> n_s;
-    int y_l = y & ((1 << n_s) - 1);
+    int x_h = x / power(10, n_s2);
+    int x_l = x % power(10, n_s2);
 
-    // Recursive calls
-    std::vector<int> z_h, z_c, z_l;
-    recursiveMultiply(x_h, y_h, n_s, z_h);
-    recursiveMultiply(x_h + x_l, y_h + y_l, n_s, z_c);
-    recursiveMultiply(x_l, y_l, n_s, z_l);
+    int y_h = y / power(10, n_s2);
+    int y_l = y % power(10, n_s2);
 
-    // Perform the calculations
-    std::vector<int> z(output.size());
-    for (int i = 0; i < output.size(); i++) {
-        if (i < z_h.size()) {
-            z[i + 2 * n_s] += z_h[i];
-        }
-        if (i < z_c.size()) {
-            z[i + n_s] += z_c[i] - z_h[i] - z_l[i];
-        }
-        if (i < z_l.size()) {
-            z[i] += z_l[i];
-        }
-    }
+    karatsuba_verbose(x_h, y_h, indent + 1);
+    karatsuba_verbose(x_l, y_l, indent + 1);
+    karatsuba_verbose(x_h + x_l, y_h + y_l, indent + 1);
 
-    output = z;
+    cout << string(indent, '\t') << n_s2 << "," << x_h << "," << x_l << "," << y_h << "," << y_l << "," << karatsuba(x_h, y_h) << "," << karatsuba(x_h + x_l, y_h + y_l) << "," << karatsuba(x_l, y_l) << endl;
 }
 
 int main() {
-    int x = 17;
-    int y = 11;
-    int n_s = 2;  // Change this value according to the desired bit split
+    cout << "Result: ";
+    karatsuba_verbose(17, 11);
+    cout << endl;
 
-    std::vector<int> output;
-    recursiveMultiply(x, y, n_s, output);
-
-    // Print the input and output in the desired format
-    std::cout << n_s << ",";
-    for (int i = 0; i < output.size(); i++) {
-        std::cout << output[i];
-        if (i != output.size() - 1) {
-            std::cout << ",";
-        }
-    }
-    std::cout << std::endl;
+    cout << "Result: ";
+    karatsuba_verbose(192, 237);
+    cout << endl;
 
     return 0;
 }
